@@ -12,10 +12,14 @@ The sketch workflow is:
 - when the maximum size is reach, send ":END" to the serial
 - loop
 
+optional command:
+- GETSIZE : return the actual read range
+- SETSIZE xxxxx : set xxxxx as read range (in bits)
+
 You can use the serial monitor of the arduino IDE to comunicate with the dumper, and a hexadecimal editor to put the result in a binary.
 
 Todo :
-- [ ] allow possibility to change the rom size from the serial
+- [x] allow possibility to change the rom size from the serial
 - [ ] create a tool to send serial command / build the binary
 - [ ] allow to send binary to write on a flashcard
 - [ ] create a flashcard :)
