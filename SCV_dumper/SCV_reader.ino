@@ -4,6 +4,7 @@
 const int serialSpeed = 9600;
 const int clockPin = 12;
 const int dataPin = 13;
+const int cePin = 11;
 unsigned int maxAddress = 0x2000;
 const int gcDataBit[8] = { 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -34,10 +35,13 @@ void ReadDataLines()
   boolean dataBits[8];
   char byteReadHex[4];
 
+  digitalWrite(cePin,LOW);
+  delayMicroseconds(1);
   for(int currentBit = 0; currentBit < 8; currentBit++)
   {
     dataBits[currentBit] = digitalRead(gcDataBit[currentBit]);
   }
+  digitalWrite(cePin,HIGH);
 
   highNibble = (dataBits[7] << 3) + (dataBits[6] << 2) + (dataBits[5] << 1) + dataBits[4];
   lowNibble = (dataBits[3] << 3) + (dataBits[2] << 2) + (dataBits[1] << 1) + dataBits[0];
@@ -58,7 +62,8 @@ void ReadCartridge()
   for (unsigned int currentAddress = 0; currentAddress < maxAddress; currentAddress++) 
   {
     shiftOut16(MSBFIRST, baseAddress+currentAddress);
-    ReadDataLines();  
+    //delay(1);
+    ReadDataLines();
   }
   
   Serial.println(":END");
@@ -111,6 +116,7 @@ void setup() {
   // Setup pins
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
+  pinMode(cePin, OUTPUT);
   for(int pinInt = 0; pinInt < 8; pinInt++){
     pinMode(gcDataBit[pinInt], INPUT_PULLUP);
   }
@@ -130,12 +136,24 @@ void loop() {
   if (Serial.available() > 0)
   {
     String lineRead = SerialReadLine();
+    String subString;
     lineRead.toUpperCase();
     
     if (lineRead == "READ ALL")
     {
       ReadCartridge();
     } // lineRead = "Read All"
+
+    subString = lineRead.substring(0, 7);
+    if (subString == "SETSIZE")
+    {
+      subString = lineRead.substring(8, 13);
+      maxAddress = subString.toInt();
+    }
+    if (subString == "GETSIZE")
+    {
+      Serial.println(maxAddress);
+    }
     
     ReadyForCommand();
     
